@@ -2,18 +2,62 @@
 // http://localhost:3000/isolated/exercise/01.js
 
 import * as React from 'react'
+// state like reducer
+// const countReducer = (state, action) => ({
+//   ...state,
+//   ...(typeof action === 'function' ? action(state) : action),
+// })
+
+// redux like reducer
+const countReducer = (state, action) => {
+  switch (action.type) {
+    case 'INCREMENT':
+      return {
+        ...state,
+        count: state.count + action.payload,
+      }
+    case 'DECREMENT':
+      return {
+        ...state,
+        count: state.count - action.payload,
+      }
+
+    default:
+      return state
+  }
+}
+
+const init = initialStateFromProps => {
+  const valueInLocalStorage = window.localStorage.getItem('state')
+  if (valueInLocalStorage) {
+    return {
+      ...JSON.parse(valueInLocalStorage)
+    }
+  }
+
+  return {
+    ...initialStateFromProps,
+  }
+}
 
 function Counter({initialCount = 0, step = 1}) {
-  // 🐨 replace React.useState with React.useReducer.
-  // 💰 React.useReducer(countReducer, initialCount)
-  const [count, setCount] = React.useState(initialCount)
+  const [state, dispatch] = React.useReducer(countReducer, { count: initialCount }, init)
+  const {count} = state
 
-  // 💰 you can write the countReducer function so you don't have to make any
-  // changes to the next two lines of code! Remember:
-  // The 1st argument is called "state" - the current value of count
-  // The 2nd argument is called "newState" - the value passed to setCount
-  const increment = () => setCount(count + step)
-  return <button onClick={increment}>{count}</button>
+  React.useEffect(() => {
+    window.localStorage.setItem('state', JSON.stringify(state))
+  }, [state])
+
+  const increment = () =>
+    dispatch({type: 'INCREMENT', payload: step})
+
+    const decrement = () =>
+    dispatch({type: 'DECREMENT', payload: step})
+
+  return (<>
+  <button onClick={increment}>{count}</button>
+  <button onClick={decrement}>{count}</button>
+  </>)
 }
 
 function App() {
